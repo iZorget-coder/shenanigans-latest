@@ -45,7 +45,7 @@ public class ThirdPersonMovement : MonoBehaviour
         breathingAudioSource.clip = breathingSound;
         breathingAudioSource.loop = true;
         breathingAudioSource.volume = breathingVolume; // Set a constant breathing volume
-        breathingAudioSource.Play(); // Start breat hing sound immediately
+        breathingAudioSource.Play(); // Start breathing sound immediately
     }
 
     void Update()

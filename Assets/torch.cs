@@ -54,13 +54,13 @@ public class torch : MonoBehaviour
             HandleCooldown();
         }
 
-        if (Input.GetKeyDown(KeyCode.C) && torchScrpt.isDrawerOpen)
+        if (Input.GetKeyDown(KeyCode.C))
         {
             if (torchSlotOFF != null && !hasPickedUpTorch)
             {
                 PickUpTorch();
-
             }
+
             if (hasPickedUpTorch && !isTorchOn && !isInCooldown)
             {
                 TurnOnTorch();
@@ -69,9 +69,7 @@ public class torch : MonoBehaviour
             {
                 TurnOffTorch();
             }
-
         }
-       
 
         if (hasPickedUpTorch && !isTorchOn && !isInCooldown)
         {
