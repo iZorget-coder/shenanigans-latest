@@ -27,10 +27,11 @@ public class FloatingText : MonoBehaviour
     public AudioClip drawerOpenSound;
     public AudioClip drawerCloseSound;
     string message;
-
+    public bool hasKey;
 
     void Start()
     {
+        hasKey = false;
        
        
         rectDrawer = GetComponent<RectTransform>();
@@ -109,7 +110,7 @@ public class FloatingText : MonoBehaviour
             textCanvasGroup.blocksRaycasts = true;
 
             UpdateDoorStatusText();
-            if (Input.GetKeyDown(KeyCode.E) && doorAnimator != null)
+            if (Input.GetKeyDown(KeyCode.E) && hasKey && doorAnimator != null)
             {
                 if (!isDoorOpen)
                 {
@@ -237,7 +238,23 @@ public class FloatingText : MonoBehaviour
         {
             if (gameObject.tag == "doorUI")
             {
-                textDisplay.text = isDoorOpen ? message = "close" : message = "open";
+                if (hasKey)
+                {
+                    textDisplay.text = isDoorOpen ? message = "CLOSE" : message = "OPEN";
+                    gameObject.GetComponentInParent<HorizontalLayoutGroup>().spacing = 5;
+                    TextMeshProUGUI interactText = GameObject.FindGameObjectWithTag("doorInteractText").GetComponent<TextMeshProUGUI>();
+                    interactText.text = "E";
+
+                }
+                else
+                {
+                    message = "LOCKED";
+                    gameObject.GetComponentInParent<HorizontalLayoutGroup>().spacing = 15;
+                    TextMeshProUGUI interactText = GameObject.FindGameObjectWithTag("doorInteractText").GetComponent<TextMeshProUGUI>();
+                    interactText.text = "--";
+                    textDisplay.text = message;
+                }
+               
             }
         }
     }

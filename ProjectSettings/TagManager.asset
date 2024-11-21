@@ -10,6 +10,7 @@ TagManager:
   - torchUI
   - drawerUI
   - torch slot
+  - doorInteractText
   layers:
   - Default
   - TransparentFX
