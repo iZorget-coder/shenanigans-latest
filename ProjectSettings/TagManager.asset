@@ -11,6 +11,7 @@ TagManager:
   - drawerUI
   - torch slot
   - doorInteractText
+  - STR1
   layers:
   - Default
   - TransparentFX

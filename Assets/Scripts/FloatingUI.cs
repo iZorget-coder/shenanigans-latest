@@ -1,6 +1,5 @@
 using JetBrains.Annotations;
 using System.Collections;
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -26,14 +25,15 @@ public class FloatingText : MonoBehaviour
     public AudioClip doorCloseSound;
     public AudioClip drawerOpenSound;
     public AudioClip drawerCloseSound;
+
+    public Outline rootOutline; // Drag the Outline component here
     string message;
     public bool hasKey;
 
     void Start()
     {
         hasKey = false;
-       
-       
+
         rectDrawer = GetComponent<RectTransform>();
         originalScale = rectDrawer.localScale;
 
@@ -67,32 +67,16 @@ public class FloatingText : MonoBehaviour
     void Update()
     {
         textDisplay.text = message;
-        if (gameObject.tag == "torchUI")
-        {
-            message = "torch";
-        }
 
-        if (gameObject.tag == "drawerUI")
-        {
-            message = "drawer";
-        }
+        if (gameObject.tag == "torchUI") message = "torch";
+        if (gameObject.tag == "drawerUI") message = "drawer";
 
         float distanceToPlayer = Vector3.Distance(unit.position, mainCam.position);
 
-        if (gameObject.tag == "doorUI")
-        {
-            HandleDoorInteraction(distanceToPlayer);
-        }
-
-        if (gameObject.tag == "drawerUI")
-        {
-            HandleDrawerInteraction(distanceToPlayer);
-        }
-
-        if (gameObject.tag == "torchUI")
-        {
-            HandleTorchInteraction(distanceToPlayer);
-        }
+        if (gameObject.tag == "doorUI") HandleDoorInteraction(distanceToPlayer);
+        if (gameObject.tag == "drawerUI") HandleDrawerInteraction(distanceToPlayer);
+        if (gameObject.tag == "STR1") HandleDoorInteraction(distanceToPlayer);
+        if (gameObject.tag == "torchUI") HandleTorchInteraction(distanceToPlayer);
 
         transform.LookAt(mainCam);
         transform.Rotate(180, 0, 0);
@@ -103,13 +87,14 @@ public class FloatingText : MonoBehaviour
 
     void HandleDoorInteraction(float distanceToPlayer)
     {
-        if (distanceToPlayer <= visibilityDistance)
+        if (distanceToPlayer <= visibilityDistance && IsOutlineActive())
         {
             textCanvasGroup.alpha = 1f;
             textCanvasGroup.interactable = true;
             textCanvasGroup.blocksRaycasts = true;
 
             UpdateDoorStatusText();
+
             if (Input.GetKeyDown(KeyCode.E) && hasKey && doorAnimator != null)
             {
                 if (!isDoorOpen)
@@ -118,10 +103,7 @@ public class FloatingText : MonoBehaviour
                     doorAnimator.SetBool("isClosing", false);
                     isDoorOpen = true;
 
-                    if (doorOpenSound != null && audioSource != null)
-                    {
-                        audioSource.PlayOneShot(doorOpenSound);
-                    }
+                    if (doorOpenSound != null) audioSource.PlayOneShot(doorOpenSound);
                 }
                 else
                 {
@@ -129,10 +111,7 @@ public class FloatingText : MonoBehaviour
                     doorAnimator.SetBool("isClosing", true);
                     isDoorOpen = false;
 
-                    if (doorCloseSound != null && audioSource != null)
-                    {
-                        audioSource.PlayOneShot(doorCloseSound);
-                    }
+                    if (doorCloseSound != null) audioSource.PlayOneShot(doorCloseSound);
                 }
 
                 UpdateDoorStatusText();
@@ -146,7 +125,7 @@ public class FloatingText : MonoBehaviour
 
     void HandleDrawerInteraction(float distanceToPlayer)
     {
-        if (distanceToPlayer <= visibilityDistance)
+        if (distanceToPlayer <= visibilityDistance && IsOutlineActive())
         {
             textCanvasGroup.alpha = 1f;
             textCanvasGroup.interactable = true;
@@ -156,45 +135,33 @@ public class FloatingText : MonoBehaviour
             {
                 if (!isDrawerOpen)
                 {
-                    // Open the drawer
                     drawerAnimator.SetBool("openDrawer", true);
                     drawerAnimator.SetBool("closeDrawer", false);
                     isDrawerOpen = true;
 
                     StartCoroutine(ScaleRectTransform(rectDrawer, Vector3.zero, 0.1f));
 
-                    if (drawerOpenSound != null && audioSource != null)
-                    {
-                        audioSource.PlayOneShot(drawerOpenSound);
-                    }
+                    if (drawerOpenSound != null) audioSource.PlayOneShot(drawerOpenSound);
                 }
                 else
                 {
-                    // Close the drawer
                     drawerAnimator.SetBool("openDrawer", false);
                     drawerAnimator.SetBool("closeDrawer", true);
                     isDrawerOpen = false;
 
                     StartCoroutine(ScaleRectTransform(rectDrawer, originalScale, 0.1f));
 
-                    if (drawerCloseSound != null && audioSource != null)
-                    {
-                        audioSource.PlayOneShot(drawerCloseSound);
-                    }
-
-                    HideTextCanvasGroup();
+                    if (drawerCloseSound != null) audioSource.PlayOneShot(drawerCloseSound);
                 }
-            }
 
-            // Disable torchSlot when drawer is open and 'C' is pressed
-           
+                HideTextCanvasGroup();
+            }
         }
         else
         {
             HideTextCanvasGroup();
         }
     }
-
 
     void HandleTorchInteraction(float distanceToPlayer)
     {
@@ -208,6 +175,24 @@ public class FloatingText : MonoBehaviour
         {
             HideTextCanvasGroup();
         }
+    }
+
+    bool IsOutlineActive()
+    {
+        // Find the root parent and check for an active Outline component
+        if (rootOutline == null)
+        {
+            Transform root = transform.root; // Get the root parent
+            rootOutline = root.GetComponent<Outline>(); // Try to fetch the Outline component
+
+            if (rootOutline == null)
+            {
+                Debug.LogError("No Outline component found on the root parent.");
+                return false;
+            }
+        }
+
+        return rootOutline.enabled && rootOutline.gameObject.activeInHierarchy;
     }
 
     void HideTextCanvasGroup()
@@ -234,27 +219,22 @@ public class FloatingText : MonoBehaviour
 
     void UpdateDoorStatusText()
     {
-        if (textDisplay != null)
+        if (textDisplay != null && gameObject.tag == "doorUI")
         {
-            if (gameObject.tag == "doorUI")
+            if (hasKey)
             {
-                if (hasKey)
-                {
-                    textDisplay.text = isDoorOpen ? message = "CLOSE" : message = "OPEN";
-                    gameObject.GetComponentInParent<HorizontalLayoutGroup>().spacing = 5;
-                    TextMeshProUGUI interactText = GameObject.FindGameObjectWithTag("doorInteractText").GetComponent<TextMeshProUGUI>();
-                    interactText.text = "E";
-
-                }
-                else
-                {
-                    message = "LOCKED";
-                    gameObject.GetComponentInParent<HorizontalLayoutGroup>().spacing = 15;
-                    TextMeshProUGUI interactText = GameObject.FindGameObjectWithTag("doorInteractText").GetComponent<TextMeshProUGUI>();
-                    interactText.text = "--";
-                    textDisplay.text = message;
-                }
-               
+                textDisplay.text = isDoorOpen ? message = "CLOSE" : message = "OPEN";
+                gameObject.GetComponentInParent<HorizontalLayoutGroup>().spacing = 5;
+                TextMeshProUGUI interactText = GameObject.FindGameObjectWithTag("doorInteractText").GetComponent<TextMeshProUGUI>();
+                interactText.text = "E";
+            }
+            else
+            {
+                message = "LOCKED";
+                gameObject.GetComponentInParent<HorizontalLayoutGroup>().spacing = 15;
+                TextMeshProUGUI interactText = GameObject.FindGameObjectWithTag("doorInteractText").GetComponent<TextMeshProUGUI>();
+                interactText.text = "--";
+                textDisplay.text = message;
             }
         }
     }
