@@ -70,12 +70,13 @@ public class FloatingText : MonoBehaviour
 
         if (gameObject.tag == "torchUI") message = "torch";
         if (gameObject.tag == "drawerUI") message = "drawer";
+        if (gameObject.tag == "airVentUI") message = "air vent";
 
         float distanceToPlayer = Vector3.Distance(unit.position, mainCam.position);
 
         if (gameObject.tag == "doorUI") HandleDoorInteraction(distanceToPlayer);
         if (gameObject.tag == "drawerUI") HandleDrawerInteraction(distanceToPlayer);
-        if (gameObject.tag == "STR1") HandleDoorInteraction(distanceToPlayer);
+        if (gameObject.tag == "airVentUI") HandleAirVentInteraction(distanceToPlayer);
         if (gameObject.tag == "torchUI") HandleTorchInteraction(distanceToPlayer);
 
         transform.LookAt(mainCam);
@@ -156,6 +157,20 @@ public class FloatingText : MonoBehaviour
 
                 HideTextCanvasGroup();
             }
+        }
+        else
+        {
+            HideTextCanvasGroup();
+        }
+    }
+
+    void HandleAirVentInteraction(float distanceToPlayer)
+    {
+        if (distanceToPlayer <= visibilityDistance && IsOutlineActive())
+        {
+            textCanvasGroup.alpha = 1f;
+            textCanvasGroup.interactable = true;
+            textCanvasGroup.blocksRaycasts = true;
         }
         else
         {

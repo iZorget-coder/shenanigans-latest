@@ -12,6 +12,7 @@ TagManager:
   - torch slot
   - doorInteractText
   - STR1
+  - airVentUI
   layers:
   - Default
   - TransparentFX
